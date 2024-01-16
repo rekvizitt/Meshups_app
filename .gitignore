@@ -6,7 +6,7 @@ __pycache__
 /opt
 tools/aria2c/
 tools/flag.txt
-
+venv/
 /pretrained
 /pretrained_v2
 /uvr5_weights
