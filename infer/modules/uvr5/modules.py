@@ -75,7 +75,6 @@ def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format
                         inp_path, save_root_ins, save_root_vocal, format0
                     )
                 infos.append("%s->Success" % (os.path.basename(inp_path)))
-                yield "\n".join(infos)
             except:
                 try:
                     if done == 0:
@@ -83,15 +82,12 @@ def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format
                             inp_path, save_root_ins, save_root_vocal, format0
                         )
                     infos.append("%s->Success" % (os.path.basename(inp_path)))
-                    yield "\n".join(infos)
                 except:
                     infos.append(
                         "%s->%s" % (os.path.basename(inp_path), traceback.format_exc())
                     )
-                    yield "\n".join(infos)
     except:
         infos.append(traceback.format_exc())
-        yield "\n".join(infos)
     finally:
         try:
             if model_name == "onnx_dereverb_By_FoxJoy":
@@ -105,4 +101,4 @@ def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
             logger.info("Executed torch.cuda.empty_cache()")
-    yield "\n".join(infos)
+    return "\n".join(infos)
