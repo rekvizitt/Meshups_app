@@ -16,6 +16,9 @@ config = Config()
 
 def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format0):
     infos = []
+    vocal_data = ""
+    instrumental_data = ""
+    
     try:
         inp_root = inp_root.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
         save_root_vocal = (
@@ -24,6 +27,7 @@ def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format
         save_root_ins = (
             save_root_ins.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
         )
+        
         if model_name == "onnx_dereverb_By_FoxJoy":
             pre_fun = MDXNetDereverb(15, config.device)
         else:
@@ -36,17 +40,22 @@ def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format
                 device=config.device,
                 is_half=config.is_half,
             )
+        
         is_hp3 = "HP3" in model_name
+        
         if inp_root != "":
             paths = [os.path.join(inp_root, name) for name in os.listdir(inp_root)]
         else:
             paths = [path.name for path in paths]
+        
         for path in paths:
             inp_path = os.path.join(inp_root, path)
             need_reformat = 1
             done = 0
+            
             try:
                 info = ffmpeg.probe(inp_path, cmd="ffprobe")
+                
                 if (
                     info["streams"][0]["channels"] == 2
                     and info["streams"][0]["sample_rate"] == "44100"
@@ -59,6 +68,7 @@ def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format
             except:
                 need_reformat = 1
                 traceback.print_exc()
+            
             if need_reformat == 1:
                 tmp_path = "%s/%s.reformatted.wav" % (
                     os.path.join(os.environ["TEMP"]),
@@ -69,12 +79,14 @@ def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format
                     % (inp_path, tmp_path)
                 )
                 inp_path = tmp_path
+            
             try:
                 if done == 0:
                     pre_fun._path_audio_(
                         inp_path, save_root_ins, save_root_vocal, format0
                     )
                 infos.append("%s->Success" % (os.path.basename(inp_path)))
+                    
             except:
                 try:
                     if done == 0:
@@ -86,8 +98,10 @@ def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format
                     infos.append(
                         "%s->%s" % (os.path.basename(inp_path), traceback.format_exc())
                     )
+    
     except:
         infos.append(traceback.format_exc())
+    
     finally:
         try:
             if model_name == "onnx_dereverb_By_FoxJoy":
@@ -98,7 +112,20 @@ def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format
                 del pre_fun
         except:
             traceback.print_exc()
+        
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
             logger.info("Executed torch.cuda.empty_cache()")
-    return "\n".join(infos)
+
+        # # Чтение аудиофайла в байты
+        
+        # if format0 == "mp3":
+        #     vocal_file_path = f"{save_root_vocal}/vocal_audio.wav_10.mp3"
+        #     with open(vocal_file_path, "rb") as vocal_file:
+        #         vocal_data = vocal_file.read()
+
+        #     ins_file_path = f"{save_root_ins}/instrument_audio.wav_10.mp3"
+        #     with open(ins_file_path, "rb") as instrumental_file:
+        #         vocal_data = instrumental_file.read()
+    
+    return "\n".join(infos), save_root_vocal, save_root_ins
