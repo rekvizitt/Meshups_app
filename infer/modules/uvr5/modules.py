@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 import ffmpeg
 import torch
+import librosa
 
 from configs.config import Config
 from infer.modules.uvr5.mdxnet import MDXNetDereverb
@@ -16,8 +17,8 @@ config = Config()
 
 def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format0):
     infos = []
-    vocal_data = ""
-    instrumental_data = ""
+    # vocal_data = ""
+    # instrumental_data = ""
     
     try:
         inp_root = inp_root.strip(" ").strip('"').strip("\n").strip('"').strip(" ")
@@ -117,15 +118,11 @@ def uvr(model_name, inp_root, save_root_vocal, paths, save_root_ins, agg, format
             torch.cuda.empty_cache()
             logger.info("Executed torch.cuda.empty_cache()")
 
-        # # Чтение аудиофайла в байты
-        
-        # if format0 == "mp3":
-        #     vocal_file_path = f"{save_root_vocal}/vocal_audio.wav_10.mp3"
-        #     with open(vocal_file_path, "rb") as vocal_file:
-        #         vocal_data = vocal_file.read()
+        if format0 == "mp3":
+            vocal_file_path = os.path.join(save_root_vocal, "vocal_audio.wav_10.mp3")
+            vocal_audio, vocal_audio_rate = librosa.load(vocal_file_path)
 
-        #     ins_file_path = f"{save_root_ins}/instrument_audio.wav_10.mp3"
-        #     with open(ins_file_path, "rb") as instrumental_file:
-        #         vocal_data = instrumental_file.read()
-    
-    return "\n".join(infos), save_root_vocal, save_root_ins
+            ins_file_path = os.path.join(save_root_ins, "instrument_audio.wav_10.mp3")
+            ins_audio, ins_audio_rate = librosa.load(ins_file_path)
+
+    return "\n".join(infos), (vocal_audio_rate, vocal_audio), (ins_audio_rate, ins_audio)
