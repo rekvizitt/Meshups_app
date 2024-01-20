@@ -786,6 +786,8 @@ with gr.Blocks(title="RVC WebUI") as app:
                         )
                     but2 = gr.Button(i18n("转换"), variant="primary")
                     vc_output4 = gr.Textbox(label=i18n("输出信息"))
+                    vc_output5 = gr.Textbox(label=i18n("输出信息"))
+                    vc_output6 = gr.Textbox(label=i18n("输出信息"))
                     but2.click(
                         uvr,
                         [
@@ -797,7 +799,7 @@ with gr.Blocks(title="RVC WebUI") as app:
                             agg,
                             format0,
                         ],
-                        [vc_output4],
+                        [vc_output4, vc_output5, vc_output6],
                         api_name="uvr_convert",
                     )
 
